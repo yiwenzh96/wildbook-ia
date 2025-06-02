@@ -13,6 +13,8 @@ from wbia.constants import KEY_DEFAULTS, SPECIES_KEY
 from wbia.control import accessor_decors, controller_inject
 from wbia.web import appfuncs as appf
 
+from wbia.algo.detect import detect_service
+
 logger = logging.getLogger('wbia')
 
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
@@ -585,37 +587,7 @@ def detect_cnn_yolo_json(ibs, gid_list, config={}, **kwargs):
 @register_api('/api/detect/cnn/yolo/', methods=['PUT', 'GET', 'POST'])
 def detect_cnn_yolo(ibs, gid_list, model_tag=None, commit=True, testing=False, **kwargs):
     """
-    Run animal detection in each image. Adds annotations to the database as they are found.
 
-    Args:
-        gid_list (list): list of image ids to run detection on
-
-    Returns:
-        aids_list (list): list of lists of annotation ids detected in each
-            image
-
-    CommandLine:
-        python -m wbia.web.apis_detect --test-detect_cnn_yolo --show
-
-    RESTful:
-        Method: PUT, GET
-        URL:    /api/detect/cnn/yolo/
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from wbia.web.apis_detect import *  # NOQA
-        >>> import wbia
-        >>> ibs = wbia.opendb('PZ_MTEST')
-        >>> gid_list = ibs.get_valid_gids()[:5]
-        >>> aids_list = ibs.detect_cnn_yolo(gid_list)
-        >>> if ut.show_was_requested():
-        >>>     import wbia.plottool as pt
-        >>>     from wbia.viz import viz_image
-        >>>     for fnum, gid in enumerate(gid_list):
-        >>>         viz_image.show_image(ibs, gid, fnum=fnum)
-        >>>     pt.show_if_requested()
-        >>> # Remove newly detected annotations
-        >>> ibs.delete_annots(ut.flatten(aids_list))
     """
     # TODO: Return confidence here as well
     depc = ibs.depc_image
@@ -877,37 +849,7 @@ def detect_cnn_lightnet(
     ibs, gid_list, model_tag=None, commit=True, testing=False, **kwargs
 ):
     """
-    Run animal detection in each image. Adds annotations to the database as they are found.
 
-    Args:
-        gid_list (list): list of image ids to run detection on
-
-    Returns:
-        aids_list (list): list of lists of annotation ids detected in each
-            image
-
-    CommandLine:
-        python -m wbia.web.apis_detect --test-detect_cnn_lightnet --show
-
-    RESTful:
-        Method: PUT, GET
-        URL:    /api/detect/cnn/lightnet/
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from wbia.web.apis_detect import *  # NOQA
-        >>> import wbia
-        >>> ibs = wbia.opendb('PZ_MTEST')
-        >>> gid_list = ibs.get_valid_gids()[:5]
-        >>> aids_list = ibs.detect_cnn_lightnet(gid_list)
-        >>> if ut.show_was_requested():
-        >>>     import wbia.plottool as pt
-        >>>     from wbia.viz import viz_image
-        >>>     for fnum, gid in enumerate(gid_list):
-        >>>         viz_image.show_image(ibs, gid, fnum=fnum)
-        >>>     pt.show_if_requested()
-        >>> # Remove newly detected annotations
-        >>> ibs.delete_annots(ut.flatten(aids_list))
     """
     # TODO: Return confidence here as well
     depc = ibs.depc_image
@@ -940,6 +882,124 @@ def detect_cnn_lightnet(
         return aids_list
     else:
         return results_list
+
+
+@register_ibs_method
+def detect_cnn_service_image_uris_json(ibs, image_uris, config=None, **kwargs):
+    if config is None:
+        config = {}
+    gid_list = ibs.add_images(image_uris, auto_localize=True)
+    if None in gid_list:
+        raise RuntimeError('At least one of the image URIs failed to download')
+    return ibs.detect_cnn_service_json(gid_list, config=config, **kwargs)
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+def detect_cnn_service_json(ibs, gid_list, config=None, **kwargs):
+    if config is None:
+        config = {}
+    return detect_cnn_json(
+        ibs, gid_list, ibs.detect_cnn_service, config=config, **kwargs
+    )
+
+
+@register_ibs_method
+@accessor_decors.getter_1toM
+@register_api('/api/detect/cnn/service/', methods=['PUT', 'GET', 'POST'])
+def detect_cnn_service(ibs, gid_list, model_tag=None, update_json_log=True, **kwargs):
+    """
+    Runs detection CNN inference on a list of image gids.
+    """
+    global_gid_list = []
+    global_bbox_list = []
+    global_theta_list = []
+    global_class_list = []
+    global_conf_list = []
+    global_notes_list = []
+
+    try:
+        for img_gid in gid_list:
+            image_path = ibs.get_image_paths(img_gid)
+            (
+                gid_batch,
+                bbox_batch,
+                theta_batch,
+                class_batch,
+                conf_batch,
+                notes_batch,
+            ) = detect_service.run_inference_on_image(img_gid, image_path, model_tag)
+
+            global_gid_list += gid_batch
+            global_bbox_list += bbox_batch
+            global_theta_list += theta_batch
+            global_class_list += class_batch
+            global_conf_list += conf_batch
+            global_notes_list += notes_batch
+
+    except Exception as ex:
+        logger.error('Error during detection: %s', ex)
+        import traceback
+        logger.info(traceback.format_exc())
+        return []
+
+    global_aid_list = ibs.add_annots(
+        global_gid_list,
+        global_bbox_list,
+        global_theta_list,
+        global_class_list,
+        detect_confidence_list=global_conf_list,
+        notes_list=global_notes_list,
+        quiet_delete_thumbs=True,
+        skip_cleaning=True,
+    )
+
+    logger.info('global_aid_set: %s', set(global_aid_list))
+
+    aids_list = ibs.get_image_aids(gid_list)
+    aids_list = [
+        [aid for aid in aid_list_ if aid in global_aid_list] for aid_list_ in aids_list
+    ]
+    aid_list = ut.flatten(aids_list)
+
+    viewpoint_model_tag = kwargs.get('viewpoint_model_tag')
+    labeler_algo = kwargs.get('labeler_algo', 'pipeline')
+    use_labeler_species = kwargs.get('use_labeler_species', False)
+    apply_nms_post_use_labeler_species = kwargs.get(
+        'apply_nms_post_use_labeler_species', True
+    )
+
+    if viewpoint_model_tag is not None and kwargs.get('labeler_model_tag') is None:
+        kwargs['labeler_model_tag'] = viewpoint_model_tag
+
+    labeler_model_tag = kwargs.get('labeler_model_tag')
+    if labeler_model_tag is not None:
+        labeler_config = {
+            'labeler_algo': labeler_algo,
+            'labeler_weight_filepath': labeler_model_tag,
+        }
+        viewpoint_list = ibs.depc_annot.get_property(
+            'labeler', aid_list, 'viewpoint', config=labeler_config
+        )
+        ibs.set_annot_viewpoints(aid_list, viewpoint_list)
+
+        if use_labeler_species:
+            species_list = ibs.depc_annot.get_property(
+                'labeler', aid_list, 'species', config=labeler_config
+            )
+            ibs.set_annot_species(aid_list, species_list)
+
+            if apply_nms_post_use_labeler_species:
+                aids_list = [ibs.nms_aids(aids, **kwargs) for aids in aids_list]
+                aid_list = ut.flatten(aids_list)
+
+    ibs._clean_species()
+
+    if update_json_log:
+        ibs.log_detections(aid_list)
+
+    return aids_list
+
 
 
 @register_ibs_method
