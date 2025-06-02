@@ -1028,7 +1028,7 @@ def start_detect_image_algo(
         },
         'service': {
             'uuid': 'detect_cnn_service_json',
-            'url': 'detect_cnn_service_uris_json' ## notimplemented
+            'url': 'detect_cnn_service_image_uris_json'
         }
     }
 
