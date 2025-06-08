@@ -4,6 +4,7 @@ set -ex
 
 export CUR_LOC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 pip install git+https://github.com/WildMeOrg/wbia-utool.git
+pip install wbia-pyhesaff
 pip install -r requirements/build.txt
 
 if command -v yum &> /dev/null
