@@ -4,7 +4,6 @@ set -ex
 
 export CUR_LOC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 pip install git+https://github.com/WildMeOrg/wbia-utool.git
-
 pip install -r requirements/build.txt
 
 if command -v yum &> /dev/null
@@ -38,6 +37,9 @@ else
         graphviz-dev \
         postgresql \
         libopencv-dev \
+        libopencv-core-dev \
+        cmake \
+        ninja-build \
         qt5-qmake \
         qtbase5-dev \
         qtchooser \
