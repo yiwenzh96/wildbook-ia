@@ -3,6 +3,7 @@
 set -ex
 
 export CUR_LOC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+pip install git+https://github.com/WildMeOrg/wbia-utool.git
 
 pip install -r requirements/build.txt
 
@@ -44,7 +45,15 @@ else
         qttools5-dev-tools \
         qtchooser \
         coreutils
+        libopencv-dev libopencv-core-dev \
+        build-essential cmake ninja-build \
+        qtbase5-dev qt5-qmake qtchooser \
+        libgeos-dev libgdal-dev libproj-dev graphviz \
+        libgl1-mesa-glx libxext6 libxrender-dev
+
+export OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4
 fi
+
 
 pip install --global-option=build_ext --global-option="-I/usr/include/graphviz/" --global-option="-L/usr/lib/graphviz/" pygraphviz
 pip uninstall -y pyqt5
