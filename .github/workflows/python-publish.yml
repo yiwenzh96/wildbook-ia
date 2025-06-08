@@ -31,7 +31,7 @@ jobs:
           pip install build
           python -m build --wheel --outdir dist/ .
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           path: ./dist/*.whl
 
@@ -52,7 +52,7 @@ jobs:
           pip install build
           python -m build --sdist --outdir dist/ .
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           path: ./dist/*.tar.gz
 
