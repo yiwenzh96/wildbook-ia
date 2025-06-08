@@ -1062,6 +1062,7 @@ def start_detect_image_algo(
 
     return jobid
 
+
 @register_ibs_method
 @register_api('/test/engine/detect/cnn/lightnet/', methods=['GET'])
 def start_detect_image_test_lightnet(ibs):
@@ -1073,6 +1074,7 @@ def start_detect_image_test_lightnet(ibs):
     image_uuid_list = ibs.get_image_uuids(gid_list)
     jobid = ibs.start_detect_image_lightnet(image_uuid_list)
     return jobid
+
 
 @register_ibs_method
 @register_api('/api/engine/classify/whaleshark/injury/', methods=['POST'])
