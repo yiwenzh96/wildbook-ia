@@ -29,6 +29,7 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install build
+          rm -rf dist && mkdir dist
           python -m build --wheel --outdir dist/ .
 
       - uses: actions/upload-artifact@v4
@@ -52,8 +53,9 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install build
+          rm -rf dist && mkdir dist
           python -m build --sdist --outdir dist/ .
-
+         
       - uses: actions/upload-artifact@v4
         with:
           path: ./dist/*.tar.gz
