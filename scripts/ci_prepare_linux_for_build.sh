@@ -6,7 +6,14 @@ export CUR_LOC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd 
 pip install git+https://github.com/WildMeOrg/wbia-utool.git
 pip install wbia-pyhesaff
 pip install -r requirements/build.txt
+pip install --upgrade pip
+pip install setuptools wheel setuptools_scm scikit-build cmake ninja
 
+# Install in correct order
+pip install git+https://github.com/WildMeOrg/wbia-utool.git
+pip install git+https://github.com/WildMeOrg/wbia-vtool.git
+pip install git+https://github.com/WildMeOrg/wbia-pyflann.git
+pip install git+https://github.com/WildMeOrg/wbia-pyhesaff.git
 if command -v yum &> /dev/null
 then
     yum install -y \
