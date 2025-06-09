@@ -9,11 +9,13 @@ pip install -r requirements/build.txt
 pip install --upgrade pip
 pip install setuptools wheel setuptools_scm scikit-build cmake ninja
 
-# Install in correct order
-pip install git+https://github.com/WildMeOrg/wbia-utool.git
-pip install git+https://github.com/WildMeOrg/wbia-vtool.git
-pip install git+https://github.com/WildMeOrg/wbia-pyflann.git
-pip install git+https://github.com/WildMeOrg/wbia-pyhesaff.git
+pip install --upgrade setuptools wheel setuptools_scm
+
+# Use --use-pep517 for modern PEP-compatible builds
+pip install --use-pep517 git+https://github.com/WildMeOrg/wbia-utool.git
+pip install --use-pep517 git+https://github.com/WildMeOrg/wbia-vtool.git
+pip install --use-pep517 git+https://github.com/WildMeOrg/wbia-pyhesaff.git
+
 if command -v yum &> /dev/null
 then
     yum install -y \
