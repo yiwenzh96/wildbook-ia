@@ -581,7 +581,7 @@ def add_annots_json(
             If the list is partially known, use None (null in JSON) for unknown entries.
         annot_name_list (list of str) : list of names for the annotation, if known.
             If the list is partially known, use None (null in JSON) for unknown entries.
-        annot_uuid_list (list of str) : list of annotation UUIDs to be used in IBEIS IA
+        annot_uuid_list (list of str) : list of annotation UUIDs to assign to the new annotations being added; if provided, these UUIDs will be used for the created annotations.
         **kwargs : key-value pairs passed to the ibs.add_annots() function.
 
     CommandLine:
@@ -710,7 +710,10 @@ def add_annots_json(
         annot_uuid_list = _verify(annot_uuid_list, 'annot_uuid_list', expected_length)
 
     aid_list = ibs.add_annots(
-        gid_list, bbox_list=annot_bbox_list, theta_list=annot_theta_list, annot_uuid_list=annot_uuid_list
+        gid_list,
+        bbox_list=annot_bbox_list,
+        theta_list=annot_theta_list,
+        annot_uuid_list=annot_uuid_list,
     )
 
     if annot_viewpoint_list is not None:
