@@ -1001,7 +1001,6 @@ def detect_cnn_service(ibs, gid_list, model_tag=None, update_json_log=True, **kw
     return aids_list
 
 
-
 @register_ibs_method
 def commit_localization_results(
     ibs,

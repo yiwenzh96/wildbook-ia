@@ -29,11 +29,15 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install build
+          rm -rf dist && mkdir dist
           python -m build --wheel --outdir dist/ .
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
+          name: wheel-artifact-${{ github.run_number }}
           path: ./dist/*.whl
+          overwrite: true
+
 
   build_sdist:
     name: Build source distribution
@@ -50,11 +54,15 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install build
+          rm -rf dist && mkdir dist
           python -m build --sdist --outdir dist/ .
-
-      - uses: actions/upload-artifact@v2
+         
+      - uses: actions/upload-artifact@v4
         with:
+          name: sdist-artifact-${{ github.run_number }}
           path: ./dist/*.tar.gz
+          overwrite: true
+
 
   upload_pypi:
     needs: [build_wheels, build_sdist]

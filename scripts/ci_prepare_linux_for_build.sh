@@ -3,8 +3,18 @@
 set -ex
 
 export CUR_LOC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-
+pip install git+https://github.com/WildMeOrg/wbia-utool.git
+pip install wbia-pyhesaff
 pip install -r requirements/build.txt
+pip install --upgrade pip
+pip install setuptools wheel setuptools_scm scikit-build cmake ninja
+
+pip install --upgrade setuptools wheel setuptools_scm
+
+# Use --use-pep517 for modern PEP-compatible builds
+pip install --use-pep517 git+https://github.com/WildMeOrg/wbia-utool.git
+pip install --use-pep517 git+https://github.com/WildMeOrg/wbia-vtool.git
+pip install --use-pep517 git+https://github.com/WildMeOrg/wbia-pyhesaff.git
 
 if command -v yum &> /dev/null
 then
@@ -37,6 +47,9 @@ else
         graphviz-dev \
         postgresql \
         libopencv-dev \
+        libopencv-core-dev \
+        cmake \
+        ninja-build \
         qt5-qmake \
         qtbase5-dev \
         qtchooser \
@@ -44,7 +57,15 @@ else
         qttools5-dev-tools \
         qtchooser \
         coreutils
+        libopencv-dev libopencv-core-dev \
+        build-essential cmake ninja-build \
+        qtbase5-dev qt5-qmake qtchooser \
+        libgeos-dev libgdal-dev libproj-dev graphviz \
+        libgl1-mesa-glx libxext6 libxrender-dev
+
+export OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4
 fi
+
 
 pip install --global-option=build_ext --global-option="-I/usr/include/graphviz/" --global-option="-L/usr/lib/graphviz/" pygraphviz
 pip uninstall -y pyqt5
