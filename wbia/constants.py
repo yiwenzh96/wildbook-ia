@@ -588,6 +588,7 @@ SPECIES_WITH_DETECTORS = (
     'monachus_schauinslandi+head',
     'physeter_macrocephalus',
     'physeter_macrocephalus+fluke',
+    'vitulina'
 )
 
 
